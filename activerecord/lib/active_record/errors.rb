@@ -272,19 +272,17 @@ module ActiveRecord
   #   class BooksController < ActionController::Base
   #     def create
   #       Book.transaction do
-  #         book = Book.new(params[:book])
-  #         book.save!
-  #         if today_is_friday?
-  #           # The system must fail on Friday so that our support department
-  #           # won't be out of job. We silently rollback this transaction
-  #           # without telling the user.
-  #           raise ActiveRecord::Rollback, "Call tech support!"
+  #         Stats.create!(type: 'book_purchase', params[:userinfo]) # If this fails, user gets generic 500 behavior
+  #         author = Author.find_or_create_by!(params[:author])     # If this fails, user gets generic 500 behavior
+  #         @book = author.books.build(params[:book])
+  #         if @book.save # note that we are using save, not save!
+  #           redirect_to @book and return # success behavior
+  #         else
+  #           # If @book.save fails, we roll back Stats and Author db modifications and inform the user about the problem with @book
+  #           raise ActiveRecord::Rollback
   #         end
   #       end
-  #       # ActiveRecord::Rollback is the only exception that won't be passed on
-  #       # by ActiveRecord::Base.transaction, so this line will still be reached
-  #       # even on Friday.
-  #       redirect_to root_url
+  #       render 'new' # this line is only reached if @book.save fails
   #     end
   #   end
   class Rollback < ActiveRecordError
