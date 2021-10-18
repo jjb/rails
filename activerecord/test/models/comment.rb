@@ -24,6 +24,9 @@ class Comment < ActiveRecord::Base
   has_many :children, class_name: "Comment", foreign_key: :parent_id, inverse_of: :parent
   belongs_to :parent, class_name: "Comment", counter_cache: :children_count, inverse_of: :children
 
+  has_many :comments
+  belongs_to :comment
+
   alias_attribute :entry, :post
 
   enum label: [:default, :child]

@@ -165,6 +165,34 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
 
     assert_predicate human_reflection, :has_inverse?
   end
+
+  def self_referential_models_get_correct_attributes_assigned_when_newly_created
+    c1 = Comment.create!
+    c2 = Comment.create!(comment: c1)
+    c3 = Comment.create!(comment: c2)
+    assert_nil c1.thing_id
+    assert c2.thing_id
+    assert c3.thing_id
+  end
+
+  def self_referential_models_get_correct_attributes_when_loaded_from_db
+    c1 = Comment.create!
+    c2 = Comment.create!(comment: c1)
+    c3 = Comment.create!(comment: c2)
+    assert_nil c1.reload.thing_id
+    assert c2.reload.thing_id
+    assert c3.reload.thing_id
+  end
+
+  def self_referential_models_point_at_created_objects_when_newly_created
+    c1 = Comment.create!
+    c2 = Comment.create!(comment: c1)
+    c3 = Comment.create!(comment: c2)
+    assert_nil c1.thing
+    assert_equal c2.thing.id, c1.id
+    assert_equal c3.thing.id, c2.id
+  end
+
 end
 
 class InverseAssociationTests < ActiveRecord::TestCase
